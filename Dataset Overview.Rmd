@@ -1,0 +1,172 @@
+---
+title: "M5 Forecasting Dataset Overview"
+output: html_notebook
+---
+## package import
+```{r}
+library(readr)
+library(fpp2)
+library(plyr)
+```
+
+## Calendar Data
+```{r}
+calendar <- read_csv("data/calendar.csv")
+head(calendar)
+```
+## Sales Data
+```{r}
+sell_prices <- read_csv("data/sell_prices.csv")
+head(sell_prices)
+```
+### Summary of sales data
+```{r}
+summary(sell_prices)
+```
+## All Time Series Avaliable in dataset
+1. Unit sales of all products, aggregated for all stores/states - 1
+2. Unit sales of all products, aggregated for each State - 3
+3. Unit sales of all products, aggregated for each store - 10
+4. Unit sales of all products, aggregated for each category - 3
+5. Unit sales of all products, aggregated for each department - 7
+6. Unit sales of all products, aggregated for each State and category - 9
+7. Unit sales of all products, aggregated for each State and department - 21
+8. Unit sales of all products, aggregated for each store and category - 30
+9. Unit sales of all products, aggregated for each store and department - 70
+10. Unit sales of product x, aggregated for all stores/states - 3049
+11. Unit sales of product x, aggregated for each State - 9147
+12. Unit sales of product x, aggregated for each store - 30490
+13. Sales Price of all products, aggregated for all stores/states - 1
+
+## Time Series
+```{r}
+time_series = NULL
+```
+
+### Time Series 13
+#### Sales Price of all products, aggregated for all stores/states
+how many items are sell per day
+```{r}
+sell_freq = count(sell_prices$wm_yr_wk)
+time_series.13 = ts(sell_freq$freq,
+                   start = c(2011, 4),
+                   frequency = 52)
+plot(time_series.13)
+```
+## Time Series Data
+```{r}
+dataset <- read_csv("data/sales_train_validation.csv")
+head(dataset)
+```
+### Time Series 1 - Unit sales of all products, aggregated for all stores/states
+```{r}
+time_series.1 = ts(
+  colSums(dataset[, 7:length(dataset)]),
+  start = c(2011, 29),
+  frequency = 365
+)
+plot(time_series.1)
+```
+#### Time Series 1 - Properties
+##### Corelation with event
+##### Event Time Series
+```{r}
+f = function(x) {
+  output = 0
+  if (!is.na(x[1])){
+    output = output + 1
+  }
+  
+  if (!is.na(x[2])){
+    output = output + 1
+  }
+  
+  return(output)
+}
+
+time_series.events = ts(
+  apply(as.matrix(calendar[1:length(time_series.1),c('event_name_1','event_name_2')]), 1, f),
+  start = c(2011, 29),
+  frequency = 365
+)
+autoplot(time_series.events)
+```
+#### Relationship between events and time series 1
+##### simple plot
+```{r}
+time_series.1_events = ts.union(time_series.1, time_series.events)
+autoplot(time_series.1_events, facets=TRUE)
+```
+##### qplot
+```{r}
+qplot(time_series.1, time_series.events, data=as.data.frame(time_series.1_events))
+```
+#### SNAP
+```{r}
+time_series.snaps = ts(
+  calendar[1:length(time_series.1),c('snap_TX','snap_WI', 'snap_CA')],
+  start = c(2011, 29),
+  frequency = 365
+)
+autoplot(time_series.events)
+```
+#### Relationship between snaps and time series 1
+##### simple plot
+```{r}
+time_series.1_snaps = ts.union(time_series.1, time_series.snaps)
+autoplot(time_series.1_snaps, facets=TRUE)
+```
+#### Relationship between snap and time series 1
+```{r}
+GGally::ggpairs(as.data.frame(time_series.1_snaps))
+```
+```{r}
+GGally::ggpairs(as.data.frame(time_series.1_events))
+```
+##### lag plot of time series 1
+```{r}
+gglagplot(window(time_series.1, start = 2011))
+```
+##### Autocorelation plot of time series 1
+```{r}
+ggAcf(time_series.1)
+```
+##### conclusion of autocorelation plot for time series 1
+time series 1 have trend and seasonality both.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
